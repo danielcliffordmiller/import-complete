@@ -83,12 +83,12 @@ endfunction
 
 function! s:selectImport()
   let l:class = expand('<cword>')
-  let l:tags =  s:loadMenu(l:class)
+  let l:tags = s:loadMenu(l:class)
 
   if len(l:tags) == 1
     let s:importClass = [ get(l:tags,0), l:class ]
   else
-    execute "popup Imports." . expand('<cword>') 
+    execute "popup Imports." . l:class
   endif
 
   if len(s:importClass) == 0 | return | endif
@@ -96,6 +96,7 @@ function! s:selectImport()
   let [l:tag, l:class] = s:importClass
   call s:addImport(l:tag, l:class)
   let s:importClass = []
+  execute "unmenu Imports." . l:class
 endfunction
 
 function! s:setImportClass(tag, class)
