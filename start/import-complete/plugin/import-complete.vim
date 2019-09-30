@@ -78,7 +78,11 @@ function! s:fileExtension()
 endfunction
 
 function! s:loadTags()
-  return json_decode(join(readfile(s:javaTagsFile), ''))
+  try
+    return json_decode(join(readfile(s:javaTagsFile), ''))
+  catch /E484/
+    return {}
+  endtry
 endfunction
 
 function! s:selectImport()
