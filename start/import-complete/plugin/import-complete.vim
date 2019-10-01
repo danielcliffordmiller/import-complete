@@ -87,6 +87,12 @@ endfunction
 
 function! s:selectImport()
   let l:class = expand('<cword>')
+
+  if !has_key(s:classTags, l:class)
+    echom "Class '" . l:class . "' not found in tag file"
+    return
+  endif
+
   let l:tags = s:loadMenu(l:class)
 
   if len(l:tags) == 1
