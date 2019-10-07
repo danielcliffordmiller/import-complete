@@ -25,6 +25,35 @@ function! s:offsetPos(pos, offset)
   return [get(a:pos,0), get(a:pos,1) + a:offset, get(a:pos,2), get(a:pos,3)]
 endfunction
 
+" this function only removed imports that are
+" grouped together on sequential lines
+function! s:deleteImports(escapedTag)
+  let l:curpos = getcurpos()
+  let l:saveReg = @"
+
+  normal gg
+
+  let l:imports = []
+  let l:searchResult = search('^\(\s\+\)\?import ' . a:escapedTag, "W")
+  let l:oldSearchResult = l:searchResult
+  while l:searchResult && (l:searchResult == l:oldSearchResult)
+    normal ddk
+    call add(l:imports, @")
+    let l:searchResult = search('^\(\s\+\)\?import ' . a:escapedTag, "W")
+  endwhile
+
+  call map(l:imports, 'strcharpart(v:val, 0, strchars(v:val)-1)' )
+
+  let @" = l:saveReg
+  call setpos('.', l:curpos)
+
+  return l:imports
+endfunction
+
+function DeleteImports(escapedTag)
+  return s:deleteImports(a:escapedTag)
+endfunction
+
 function! s:addImport(tag,class)
 
   let l:curpos = getcurpos()
@@ -50,18 +79,28 @@ function! s:addImport(tag,class)
     call remove(l:classList, -1)
   endwhile
 
+  let l:imports = s:deleteImports( l:escapedTag )
+
   if l:searchResult == 0
-    execute "normal oj"
+    execute "normal o"
     let l:offset += 1
+  else
+    normal k
   endif
 
-  let l:execString = "normal Oimport " . a:tag . "." . a:class
-  let l:offset += 1
+  let l:newImport = "import " . a:tag . "." . a:class
   if s:fileExtension() ==# "java"
-    let l:execString .= ";"
+    let l:newImport .= ";"
   endif
+  call add( l:imports, l:newImport )
 
-  execute l:execString
+  call sort(l:imports)
+
+  let l:offset += 1
+
+  for import in l:imports
+    execute "normal o" . import
+  endfor
 
   call setpos('.', s:offsetPos(l:curpos, l:offset))
 
