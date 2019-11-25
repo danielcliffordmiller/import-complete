@@ -118,16 +118,21 @@ endfunction
 
 function! s:loadTags()
   try
-    return json_decode(join(readfile(s:javaTagsFile), ''))
+    return [ json_decode(join(readfile(s:javaTagsFile), '')), getftime(s:javaTagsFile) ]
   catch /E484/
-    return {}
+    return [ {}, -1 ]
   endtry
 endfunction
 
 function! s:selectImport()
   let l:class = expand('<cword>')
 
-  if !has_key(s:classTags, l:class)
+  "let l:modeTime = getftime(s:javaTagsFile)
+  if get(s:classTags, 1) < getftime(s:javaTagsFile)
+    let s:classTags = s:loadTags()
+  endif
+
+  if !has_key(get(s:classTags, 0), l:class)
     echom "Class '" . l:class . "' not found in tag file"
     return
   endif
@@ -153,12 +158,12 @@ function! s:setImportClass(tag, class)
 endfunction
 
 function! s:loadMenu(class)
-  for tag in s:classTags[a:class]
+  for tag in get(s:classTags,0)[a:class]
     let l:escapedTag = substitute(tag, '\.', '\\\.', 'g')
     execute "menu Imports." . a:class . '.' . l:escapedTag . ' :call ' . s:localFunName('setImportClass') . "('" . l:tag . "','" . a:class . "')\<cr>"
   endfor
 
-  return s:classTags[a:class]
+  return get(s:classTags,0)[a:class]
 endfunction
 
 let s:classTags = s:loadTags()
