@@ -14,7 +14,7 @@ function! s:importExists(tag, class)
 
   let l:escapedTag =  substitute(a:tag,'\.','\\\.','g')
 
-  if search('^\(\s\+\)\?import ' . l:escapedTag . '\.' . a:class)
+  if search('^\(\s\+\)\?import ' . l:escapedTag . '\.' . a:class . ';\?$')
     return v:true
   endif
 
